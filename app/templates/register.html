@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Create account · My App{% endblock %}
+
+{% block body %}
+<div class="theme-corner">{% include "partials/theme_toggle.html" %}</div>
+
+<main class="auth-page">
+  <div class="auth-card">
+    <div class="brand"><span class="brand-mark">M</span><span class="brand-name">Register</span></div>
+
+    <h1>Create your account</h1>
+    <p class="subtitle">It only takes a minute.</p>
+
+    {% if error %}
+    <div class="alert alert-error" role="alert">{{ error }}</div>
+    {% endif %}
+
+    <form action="/register" method="post">
+      <div class="field">
+        <label for="name">Full name</label>
+        <input class="input" id="name" type="text" name="name"
+               value="{{ name or '' }}" placeholder="Aslam"
+               autocomplete="name" required minlength="2" maxlength="60">
+      </div>
+
+      <div class="field">
+        <label for="email">Email</label>
+        <input class="input" id="email" type="email" name="email"
+               value="{{ email or '' }}" placeholder="aslam@example.com"
+               autocomplete="email" required>
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <div class="password-wrap">
+          <input class="input" id="password" type="password" name="password"
+                 placeholder="At least 8 characters" autocomplete="new-password"
+                 required minlength="8" maxlength="128">
+          <button type="button" class="pw-toggle" data-toggle-password="password">Show</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="confirm_password">Confirm password</label>
+        <div class="password-wrap">
+          <input class="input" id="confirm_password" type="password" name="confirm_password"
+                 placeholder="Repeat your password" autocomplete="new-password" required>
+          <button type="button" class="pw-toggle" data-toggle-password="confirm_password">Show</button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block">Create account</button>
+    </form>
+
+    <div class="divider"><span>OR</span></div>
+
+    {% include "partials/google_button.html" %}
+
+    <p class="footer-text">Already have an account? <a href="/login">Sign in</a></p>
+  </div>
+</main>
+{% endblock %}

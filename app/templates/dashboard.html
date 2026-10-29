@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · My App{% endblock %}
+
+{% block body %}
+<header class="navbar">
+  <div class="container navbar-inner">
+    
+    <div class="brand"><span class="brand-mark">M</span><span class="brand-name">Auth sys</span></div>
+    <div class="nav-actions">
+      {% include "partials/theme_toggle.html" %}
+      <form action="/logout" method="post">
+        <button type="submit" class="btn btn-ghost">Log out</button>
+      </form>
+    </div>
+  </div>
+</header>
+
+<main class="container dashboard">
+  <section class="profile-card">
+    <div class="profile-banner"></div>
+    <div class="profile-body">
+      {% if user.picture %}
+      <img class="avatar" src="{{ user.picture }}" alt="Profile picture" referrerpolicy="no-referrer">
+      {% else %}
+      <div class="avatar avatar-fallback">{{ user.initials }}</div>
+      {% endif %}
+
+      <h1>Hi, {{ user.name.split(' ')[0] }}</h1>
+      <p class="muted">You're signed in. Here's your profile.</p>
+
+      <div class="info-grid">
+        <div class="info-item"><span class="info-label">Full name</span><span class="info-value">{{ user.name }}</span></div>
+        <div class="info-item"><span class="info-label">Email</span><span class="info-value">{{ user.email }}</span></div>
+        <div class="info-item"><span class="info-label">Sign-in method</span><span class="info-value">{{ user.provider }}</span></div>
+        <div class="info-item"><span class="info-label">Member since</span><span class="info-value">{{ user.created_at.strftime('%b %d, %Y') }}</span></div>
+      </div>
+    </div>
+  </section>
+</main>
+{% endblock %}

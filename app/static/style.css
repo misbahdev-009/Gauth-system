@@ -1,0 +1,306 @@
+/* =========================================================
+   1. THEME COLORS
+   Change colors here and the whole site updates.
+   ========================================================= */
+:root {
+  color-scheme: light;
+  --bg: #f4f6fb;
+  --glow-1: rgba(99, 102, 241, 0.16);
+  --glow-2: rgba(14, 165, 233, 0.12);
+  --surface: #ffffff;
+  --surface-2: #f1f5f9;
+  --text: #0f172a;
+  --muted: #5b6577;
+  --border: #e2e8f0;
+
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --on-primary: #ffffff;
+  --link: #4f46e5;
+  --ring: rgba(79, 70, 229, 0.28);
+
+  --danger-bg: #fef2f2;
+  --danger-text: #b91c1c;
+  --danger-border: #fecaca;
+
+  --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  --radius: 14px;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0b1020;
+  --glow-1: rgba(99, 102, 241, 0.22);
+  --glow-2: rgba(14, 165, 233, 0.10);
+  --surface: #121a30;
+  --surface-2: #1a2340;
+  --text: #e8ecf8;
+  --muted: #9aa6c0;
+  --border: #263253;
+
+  --primary: #6366f1;
+  --primary-hover: #818cf8;
+  --on-primary: #ffffff;
+  --link: #a5b4fc;
+  --ring: rgba(129, 140, 248, 0.35);
+
+  --danger-bg: rgba(239, 68, 68, 0.12);
+  --danger-text: #fca5a5;
+  --danger-border: rgba(239, 68, 68, 0.35);
+
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+
+/* =========================================================
+   2. BASE
+   ========================================================= */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  line-height: 1.5;
+  color: var(--text);
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(900px 500px at 10% -10%, var(--glow-1), transparent 60%),
+    radial-gradient(800px 500px at 100% 110%, var(--glow-2), transparent 60%);
+  background-attachment: fixed;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+h1 { margin: 0 0 6px; font-size: 1.6rem; line-height: 1.25; }
+a { color: var(--link); text-decoration: none; font-weight: 500; }
+a:hover { text-decoration: underline; }
+.muted { color: var(--muted); margin: 0; }
+
+:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+
+/* =========================================================
+   3. THEME TOGGLE BUTTON
+   ========================================================= */
+.theme-toggle {
+  width: 40px;
+  height: 40px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+.theme-toggle:hover { background: var(--surface-2); }
+.theme-toggle svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.theme-toggle .icon-sun { display: none; }
+[data-theme="dark"] .theme-toggle .icon-sun { display: block; }
+[data-theme="dark"] .theme-toggle .icon-moon { display: none; }
+
+.theme-corner { position: fixed; top: 16px; right: 16px; z-index: 10; }
+
+/* =========================================================
+   4. BRAND
+   ========================================================= */
+.brand { display: flex; align-items: center; gap: 10px; margin-bottom: 22px; }
+.brand-mark {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  color: #fff;
+  font-weight: 800;
+  background: linear-gradient(135deg, #6366f1, #0ea5e9);
+}
+.brand-name { font-weight: 700; font-size: 1.1rem; }
+
+/* =========================================================
+   5. AUTH PAGES (login / register)
+   ========================================================= */
+.auth-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 72px 20px 32px;
+}
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 36px 32px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.subtitle { margin: 0 0 24px; color: var(--muted); font-size: 0.95rem; }
+
+/* =========================================================
+   6. FORMS
+   ========================================================= */
+.field { margin-bottom: 16px; }
+.field label { display: block; margin-bottom: 6px; font-size: 0.85rem; font-weight: 600; color: var(--muted); }
+
+.input {
+  width: 100%;
+  padding: 11px 14px;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+.input::placeholder { color: var(--muted); opacity: 0.7; }
+.input:focus {
+  outline: none;
+  background: var(--surface);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--ring);
+}
+
+.password-wrap { position: relative; }
+.password-wrap .input { padding-right: 64px; }
+.pw-toggle {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  padding: 6px 10px;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--link);
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.pw-toggle:hover { background: var(--surface); }
+
+/* =========================================================
+   7. BUTTONS
+   ========================================================= */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 11px 18px;
+  font: inherit;
+  font-weight: 600;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.05s ease;
+}
+.btn:hover { text-decoration: none; }
+.btn:active { transform: translateY(1px); }
+.btn-block { width: 100%; }
+
+.btn-primary { background: var(--primary); color: var(--on-primary); margin-top: 6px; }
+.btn-primary:hover { background: var(--primary-hover); }
+
+.btn-google { background: var(--surface); color: var(--text); border-color: var(--border); }
+.btn-google:hover { background: var(--surface-2); }
+
+.btn-ghost { background: transparent; color: var(--text); border-color: var(--border); }
+.btn-ghost:hover { background: var(--surface-2); }
+
+/* =========================================================
+   8. MISC (divider, alerts, footer text)
+   ========================================================= */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 22px 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+.divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+
+.alert { margin-bottom: 18px; padding: 12px 14px; font-size: 0.9rem; border-radius: 10px; border: 1px solid; }
+.alert-error { color: var(--danger-text); background: var(--danger-bg); border-color: var(--danger-border); }
+
+.footer-text { margin: 22px 0 0; text-align: center; font-size: 0.9rem; color: var(--muted); }
+
+/* =========================================================
+   9. DASHBOARD
+   ========================================================= */
+.container { width: 100%; max-width: 880px; margin: 0 auto; padding: 0 20px; }
+
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: color-mix(in srgb, var(--surface) 85%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+.navbar-inner { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+.navbar .brand { margin: 0; }
+.nav-actions { display: flex; align-items: center; gap: 10px; }
+.nav-actions form { margin: 0; }
+
+.dashboard { padding-top: 40px; padding-bottom: 48px; }
+
+.profile-card {
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.profile-banner { height: 120px; background: linear-gradient(120deg, #4f46e5, #0ea5e9); }
+.profile-body { padding: 0 28px 32px; text-align: center; }
+
+.avatar {
+  display: block;
+  width: 96px;
+  height: 96px;
+  margin: -48px auto 14px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid var(--surface);
+  background: var(--surface-2);
+}
+.avatar-fallback {
+  display: grid;
+  place-items: center;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #6366f1, #0ea5e9);
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px;
+  margin-top: 28px;
+  text-align: left;
+}
+.info-item { padding: 14px 16px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; }
+.info-label { display: block; margin-bottom: 2px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+.info-value { font-weight: 600; word-break: break-word; }
+
+/* =========================================================
+   10. SMALL SCREENS
+   ========================================================= */
+@media (max-width: 480px) {
+  .auth-card { padding: 28px 20px; }
+  .profile-body { padding: 0 18px 24px; }
+}
