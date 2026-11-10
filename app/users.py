@@ -22,8 +22,13 @@ class User(BaseModel):
 
     @property
     def initials(self) -> str:
-        parts = self.name.split()
+        parts = self.name.strip().split()
         return "".join(p[0] for p in parts[:2]).upper() or "?"
+
+    @property
+    def first_name(self) -> str:
+        parts = self.name.strip().split()
+        return parts[0] if parts else self.name
 
     @property
     def provider(self) -> str:
@@ -40,7 +45,7 @@ class UserStore(Protocol):
 
 
 class InMemoryUserStore:
-    """Data is lost when the server restarts. Fine for development."""
+    """Data is stored in-memory (resets on server restart). Default for development."""
 
     def __init__(self) -> None:
         self._users: dict[str, User] = {}
@@ -66,50 +71,96 @@ class InMemoryUserStore:
 
 
 class MongoUserStore:
-    """Permanent storage using MongoDB."""
+    """Permanent storage using MongoDB with automatic in-memory fallback on failure."""
 
     def __init__(self, uri: str, db_name: str) -> None:
         from pymongo import AsyncMongoClient
 
-        self._users = AsyncMongoClient(uri)[db_name]["users"]
+        self._client = AsyncMongoClient(uri, serverSelectionTimeoutMS=1500)
+        self._users = self._client[db_name]["users"]
+        self._fallback = InMemoryUserStore()
+        self._connected = False
 
     async def init(self) -> None:
-        await self._users.create_index("id", unique=True)
-        await self._users.create_index("email", unique=True)
-        await self._users.create_index(
-            "google_id",
-            unique=True,
-            partialFilterExpression={"google_id": {"$type": "string"}},
-        )
+        try:
+            await self._client.admin.command("ping")
+            await self._users.create_index("id", unique=True)
+            await self._users.create_index("email", unique=True)
+            await self._users.create_index(
+                "google_id",
+                unique=True,
+                partialFilterExpression={"google_id": {"$type": "string"}},
+            )
+            self._connected = True
+            logger.info("Successfully connected to MongoDB.")
+        except Exception as exc:
+            self._connected = False
+            logger.warning(
+                "MongoDB connection failed (%s). Falling back to in-memory user store for development.",
+                exc,
+            )
 
     @staticmethod
     def _to_user(doc: dict | None) -> User | None:
         return User(**doc) if doc else None
 
     async def get_by_id(self, user_id: str) -> User | None:
-        return self._to_user(await self._users.find_one({"id": user_id}, {"_id": 0}))
+        if not self._connected:
+            return await self._fallback.get_by_id(user_id)
+        try:
+            return self._to_user(await self._users.find_one({"id": user_id}, {"_id": 0}))
+        except Exception as exc:
+            logger.warning("MongoDB get_by_id error: %s. Using fallback.", exc)
+            return await self._fallback.get_by_id(user_id)
 
     async def get_by_email(self, email: str) -> User | None:
-        return self._to_user(await self._users.find_one({"email": email}, {"_id": 0}))
+        if not self._connected:
+            return await self._fallback.get_by_email(email)
+        try:
+            return self._to_user(await self._users.find_one({"email": email}, {"_id": 0}))
+        except Exception as exc:
+            logger.warning("MongoDB get_by_email error: %s. Using fallback.", exc)
+            return await self._fallback.get_by_email(email)
 
     async def get_by_google_id(self, google_id: str) -> User | None:
-        return self._to_user(
-            await self._users.find_one({"google_id": google_id}, {"_id": 0})
-        )
+        if not self._connected:
+            return await self._fallback.get_by_google_id(google_id)
+        try:
+            return self._to_user(
+                await self._users.find_one({"google_id": google_id}, {"_id": 0})
+            )
+        except Exception as exc:
+            logger.warning("MongoDB get_by_google_id error: %s. Using fallback.", exc)
+            return await self._fallback.get_by_google_id(google_id)
 
     async def create(self, user: User) -> User:
-        await self._users.insert_one(user.model_dump())
-        return user
+        if not self._connected:
+            return await self._fallback.create(user)
+        try:
+            await self._users.insert_one(user.model_dump())
+            await self._fallback.create(user)
+            return user
+        except Exception as exc:
+            logger.warning("MongoDB create error: %s. Using fallback.", exc)
+            return await self._fallback.create(user)
 
     async def update(self, user: User) -> None:
-        await self._users.update_one({"id": user.id}, {"$set": user.model_dump()})
+        if not self._connected:
+            await self._fallback.update(user)
+            return
+        try:
+            await self._users.update_one({"id": user.id}, {"$set": user.model_dump()})
+            await self._fallback.update(user)
+        except Exception as exc:
+            logger.warning("MongoDB update error: %s. Using fallback.", exc)
+            await self._fallback.update(user)
 
 
 @lru_cache
 def get_user_store() -> UserStore:
     settings = get_settings()
     if settings.mongodb_uri:
-        logger.info("Using MongoDB user store")
+        logger.info("Configured MongoDB user store with URI: %s", settings.mongodb_uri.split("@")[-1])
         return MongoUserStore(settings.mongodb_uri, settings.mongodb_db)
     logger.warning("Using in-memory user store (data resets on restart)")
     return InMemoryUserStore()
