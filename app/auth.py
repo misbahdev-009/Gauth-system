@@ -35,8 +35,8 @@ oauth.register(
 router = APIRouter(tags=["auth"])
 
 
-def _render(request: Request, name: str, status_code: int = 200, **context):
-    return templates.TemplateResponse(request, name, context, status_code=status_code)
+def _render(request: Request, template_name: str, status_code: int = 200, **context):
+    return templates.TemplateResponse(request, template_name, context, status_code=status_code)
 
 
 def _start_session(request: Request, user: User) -> RedirectResponse:
@@ -118,7 +118,7 @@ async def register_submit(
     return _start_session(request, user)
 
 
-@router.post("/logout")
+@router.api_route("/logout", methods=["GET", "POST"])
 async def logout(request: Request):
     request.session.clear()
     return RedirectResponse("/login", status_code=303)
@@ -140,23 +140,44 @@ async def google_callback(request: Request, store: UserStore = Depends(get_user_
     except OAuthError as exc:
         logger.warning("OAuth error: %s", exc.error)
         return RedirectResponse("/login?error=google_failed", status_code=303)
+    except Exception as exc:
+        logger.exception("Unexpected error during OAuth token exchange: %s", exc)
+        return RedirectResponse("/login?error=google_failed", status_code=303)
 
-    info = token.get("userinfo") or await oauth.google.userinfo(token=token)
-    email = (info.get("email") or "").lower()
-    if not email or not info.get("email_verified", False):
+    if not token:
+        return RedirectResponse("/login?error=google_failed", status_code=303)
+
+    info = token.get("userinfo")
+    if not info:
+        try:
+            info = await oauth.google.userinfo(token=token)
+        except Exception as exc:
+            logger.warning("Failed to fetch userinfo from Google: %s", exc)
+            return RedirectResponse("/login?error=google_failed", status_code=303)
+
+    if not info:
+        return RedirectResponse("/login?error=google_failed", status_code=303)
+
+    email = (info.get("email") or "").strip().lower()
+    email_verified = info.get("email_verified") in (True, "true", "True", 1)
+    if not email or not email_verified:
         return RedirectResponse("/login?error=email_unverified", status_code=303)
 
-    user = await store.get_by_google_id(info["sub"])
+    sub = info.get("sub")
+    if not sub:
+        return RedirectResponse("/login?error=google_failed", status_code=303)
+
+    user = await store.get_by_google_id(sub)
     if user is None:
         # First Google login: auto-register, unless the email is already taken
         if await store.get_by_email(email):
             return RedirectResponse("/login?error=email_exists", status_code=303)
         user = await store.create(
             User(
-                name=info.get("name") or email,
+                name=info.get("name") or email.split("@")[0],
                 email=email,
                 picture=info.get("picture"),
-                google_id=info["sub"],
+                google_id=sub,
             )
         )
         logger.info("Registered new Google user: %s", user.email)
