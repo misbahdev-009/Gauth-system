@@ -69,7 +69,9 @@ async def home(user: User | None = Depends(get_current_user_optional)):
 
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request, user: User = Depends(get_current_user)):
-    return templates.TemplateResponse(request, "dashboard.html", {"user": user})
+    response = templates.TemplateResponse(request, "dashboard.html", {"user": user})
+    response.headers["Cache-Control"] = "no-store"
+    return response
 
 
 @app.get("/health")
