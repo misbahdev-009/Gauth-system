@@ -76,3 +76,7 @@ async def dashboard(request: Request, user: User = Depends(get_current_user)):
 async def health():
     return {"status": "ok"}
 
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run("app.main:app", port=8000, reload=True)
